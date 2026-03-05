@@ -18,6 +18,7 @@ SDCardLib_Interface sdIntf_MSP430FR2355 = {
 
 void SDCard_init(void)
 {
+    // Pins correctly configured for MSP430FR2355
     UCA0CTLW0 |= UCSWRST;    // UCSWRST = 1 for register init
 
     // Init registers
