@@ -19,6 +19,7 @@ int result = 1;
 void Software_Trim();
 void blink_error(int n);
 void capture_debug_state(void);
+int write_to_sd(const char[]);
 int fat_init();
 
 #define MCLK_FREQ_MHZ 8
@@ -34,7 +35,7 @@ int main(void)
     WDTCTL = WDTPW + WDTHOLD;
     PM5CTL0 &= ~LOCKLPM5;
 
-    // Clock configuration
+    // Clock configuration - 8MHz
     __bis_SR_register(SCG0);
     CSCTL3 |= SELREF__REFOCLK;
     CSCTL1 = DCOFTRIMEN_1 | DCOFTRIM0 | DCOFTRIM1 | DCORSEL_3;
@@ -53,16 +54,16 @@ int main(void)
     SDCardLib_init(&sdLib, &sdIntf_MSP430FR2355);
     __delay_cycles(800000);
     fat_init();     // Initialise SD card
-    
-    UINT bytesWritten;
-    const char *text = "abcdefg \r\n";
-    res = f_write(&file, text, strlen(text), &bytesWritten);
+
+    const char testing[] = "Kessel Runners! \r \n";
+    write_to_sd(testing);
 
     f_close(&file);
 
         while(1)
     {
-        P6OUT ^= BIT6;                      // Toggle P6.6 using exclusive-OR
+        P6OUT ^= BIT6;                      // Blink the red LED
+        __delay_cycles(800000);
     }
 }
 
@@ -80,6 +81,20 @@ int fat_init()
         result=0; //used as a debugging flag
     }
     return 0;
+}
+
+// Write input text to SD card. If function returns 1, success. If returns 0, failure
+int write_to_sd(const char input_text[])
+{
+    UINT bytesWritten;
+    res = f_write(&file, input_text, strlen(input_text), &bytesWritten);
+    if (FR_OK == 0) 
+    {
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }
 
 void Software_Trim()
